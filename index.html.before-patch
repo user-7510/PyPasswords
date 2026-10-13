@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PyPasswords</title>
+<style>
+:root{--bg:#e8ecef;--sf:#fbfcfd;--sf2:#eef1f4;--tx:#16212b;--mu:#637080;--ac:#234e70;--on:#fff;--br:#b4852c;--dg:#b3382c;--bd:#cfd6dc;--ok:#2f7d57;--ld:#234e70;--dgt:#9a3b8e;--sy:#b4852c;
+--sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;--serif:"Iowan Old Style","Noto Serif TC","Songti TC",Georgia,serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media(prefers-color-scheme:dark){:root{--bg:#0e141a;--sf:#151d25;--sf2:#1c262f;--tx:#e6ebf0;--mu:#8795a4;--ac:#86b6dc;--on:#0e141a;--br:#d6aa52;--dg:#ec8174;--bd:#27333e;--ok:#6cc59a;--ld:#86b6dc;--dgt:#d28bc8;--sy:#d6aa52}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 var(--sans);min-height:100dvh;display:flex;flex-direction:column}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px clamp(16px,4vw,32px);border-bottom:1px solid var(--bd);background:var(--sf)}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.brand b{font:600 19px var(--serif);letter-spacing:.01em;white-space:nowrap}
+.chip{max-width:30vw;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--mu);padding:2px 10px;border:1px solid var(--bd);border-radius:20px}
+.acts{display:flex;gap:8px;flex:none}
+.btn{white-space:nowrap;border:1px solid var(--bd);background:var(--sf);padding:7px 15px;border-radius:8px;cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--ac)}
+.btn.pri{background:var(--ac);color:var(--on);border-color:var(--ac);font-weight:600}
+.btn.pri:hover{filter:brightness(1.1)}
+.btn.dg{color:var(--dg);border-color:transparent;background:none}
+.btn.gh{border-color:transparent;background:none;color:var(--mu)}
+.btn:disabled{opacity:.55;cursor:wait}
+main{flex:1;display:flex;justify-content:center;padding:clamp(16px,4vw,40px)}
+.gate{width:min(440px,100%);align-self:flex-start;margin-top:4vh}
+.gate h1{font:600 30px/1.25 var(--serif);margin:0 0 6px}
+.gate p.lead{color:var(--mu);margin:0 0 24px}
+.panel{background:var(--sf);border:1px solid var(--bd);border-top:4px solid var(--br);border-radius:4px 4px 16px 16px;padding:26px;box-shadow:0 18px 40px -24px #0004}
+.tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:20px}
+.tabs button{flex:1;background:none;border:0;border-bottom:2px solid transparent;padding:9px;cursor:pointer;color:var(--mu);margin-bottom:-1px}
+.tabs button.on{color:var(--tx);border-color:var(--ac);font-weight:600}
+label{display:block;font-size:13px;color:var(--mu);margin:14px 0 5px}
+input,select,textarea{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:9px 12px}
+textarea{resize:vertical;min-height:84px}
+input:focus,select:focus,textarea:focus{border-color:var(--ac);outline:0}
+.note{font-size:13px;color:var(--mu);border-left:3px solid var(--br);padding:2px 0 2px 10px;margin:16px 0}
+.full{width:100%;margin-top:18px;padding:11px}
+.alt{text-align:center;margin-top:14px;font-size:13px}
+.alt label{display:inline;color:var(--ac);cursor:pointer;text-decoration:underline;margin:0}
+.vault{width:min(1120px,100%);display:grid;grid-template-columns:330px 1fr;background:var(--sf);border:1px solid var(--bd);border-radius:14px 14px 4px 14px;overflow:hidden;align-self:flex-start;min-height:520px}
+.list{border-right:1px solid var(--bd);display:flex;flex-direction:column;min-width:0}
+.bar{display:flex;gap:8px;padding:14px;border-bottom:1px solid var(--bd)}
+.bar input{flex:1}
+ul{list-style:none;margin:0;padding:0;flex:1;overflow:auto;max-height:62vh}
+.it{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--bd);padding:11px 14px;cursor:pointer;border-left:3px solid transparent}
+.it:hover{background:var(--sf2)}
+.it.on{background:var(--sf2);border-left-color:var(--br)}
+.it i{flex:none;width:34px;height:34px;border-radius:50%;background:var(--sf2);border:1px solid var(--bd);display:grid;place-items:center;font:600 15px var(--serif);font-style:normal;color:var(--ac)}
+.it.on i{background:var(--ac);color:var(--on);border-color:var(--ac)}
+.it span{min-width:0}.it b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it small{color:var(--mu);font-size:12.5px}
+.empty{padding:28px 18px;color:var(--mu);text-align:center}
+.foot{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid var(--bd);font-size:13px;color:var(--mu)}
+.more{position:relative}.more summary{cursor:pointer;list-style:none;padding:4px 10px;border-radius:6px}
+.more summary:hover{background:var(--sf2)}
+.more div{position:absolute;bottom:34px;right:0;background:var(--sf);border:1px solid var(--bd);border-radius:10px;box-shadow:0 12px 30px -10px #0006;padding:6px;min-width:160px;z-index:5}
+.more button{display:block;width:100%;text-align:left;background:none;border:0;padding:8px 12px;border-radius:6px;cursor:pointer;color:var(--tx)}
+.more button:hover{background:var(--sf2)}
+.detail{padding:clamp(18px,3vw,34px);min-width:0}
+.blank{height:100%;min-height:340px;display:grid;place-content:center;text-align:center;color:var(--mu)}
+.blank b{font:600 20px var(--serif);color:var(--tx);display:block;margin-bottom:4px}
+.dh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:22px}
+.tag{font-size:13px;color:var(--ac);border:1px solid var(--ac);border-radius:4px 12px 4px 12px;padding:1px 10px}
+.dh h2{font:600 26px/1.3 var(--serif);margin:8px 0 0;overflow-wrap:anywhere}
+.row{display:grid;grid-template-columns:96px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--bd)}
+.row dt{color:var(--mu);font-size:13px}.row dd{margin:0;overflow-wrap:anywhere}
+.row.pw{align-items:start}
+.keys{font:600 19px/1.6 var(--mono);letter-spacing:.06em;word-break:break-all;padding:10px 14px;background:var(--sf2);border-left:3px solid var(--br);border-radius:2px 10px 10px 2px}
+.keys .l{color:var(--ld)}.keys .d{color:var(--dgt)}.keys .s{color:var(--sy)}.keys.mask{color:var(--mu);letter-spacing:.2em}
+.mini{font-size:13px;padding:3px 11px}
+.notes{margin:0;padding-left:18px}
+.meter{display:flex;gap:4px;margin-top:8px;align-items:center;font-size:12.5px;color:var(--mu)}
+.meter s{width:34px;height:5px;border-radius:3px;background:var(--bd);text-decoration:none}
+.meter.w s:nth-child(1){background:var(--dg)}.meter.m s:nth-child(-n+2){background:var(--br)}.meter.g s{background:var(--ok)}
+.pwl{display:flex;gap:8px}.pwl .btn{white-space:nowrap}
+.fa{display:flex;gap:8px;margin-top:22px}.fa .sp{flex:1}
+.back{display:none}
+dialog{border:1px solid var(--bd);border-radius:14px;background:var(--sf);color:var(--tx);padding:24px;width:min(460px,92vw)}
+dialog::backdrop{background:#0008}
+dialog h3{font:600 20px var(--serif);margin:0 0 12px}
+.out{font:600 18px/1.5 var(--mono);word-break:break-all;background:var(--sf2);padding:12px 14px;border-radius:8px;border-left:3px solid var(--br);min-height:3.4em}
+#busy{position:fixed;inset:0;background:#0007;display:grid;place-items:center;z-index:30}
+#busy div{background:var(--sf);padding:16px 24px;border-radius:12px;display:flex;gap:12px;align-items:center;border-top:3px solid var(--br)}
+.spin{width:16px;height:16px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.lockbox{margin-top:22px;padding:18px 20px;border:1px dashed var(--ac);border-radius:4px 14px 4px 14px}
+.lockbox b{font:600 17px var(--serif)}.lockbox p{margin:4px 0 0;color:var(--mu);font-size:14px}
+dialog .hash{font:13px/1.5 var(--mono);word-break:break-all;background:var(--sf2);padding:10px 12px;border-radius:8px;border-left:3px solid var(--br);user-select:all}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--tx);color:var(--bg);padding:9px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:.25s;z-index:20;max-width:90vw}
+#toast.on{opacity:1;transform:translate(-50%,0)}#toast.er{background:var(--dg);color:#fff}
+@media(max-width:820px){.vault{grid-template-columns:1fr}.list{border-right:0}.vault.dt .list{display:none}.vault:not(.dt) .detail{display:none}.back{display:inline-block}ul{max-height:none}.row{grid-template-columns:1fr auto}.row dt{grid-column:1/-1}}
+@media(max-width:480px){.top{padding:12px}.brand b{font-size:17px}.btn{padding:6px 12px}.acts{gap:6px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}.spin{animation:none}}
+</style>
+</head>
+<body>
+<header class="top">
+ <div class="brand"><b>PyPasswords</b><span class="chip" id="prof" hidden></span></div>
+ <div class="acts"><button class="btn" id="bGen">生成器</button><button class="btn pri" id="bLock" hidden>鎖定</button></div>
+</header>
+<main>
+<section class="gate" id="gate">
+ <h1>本機加密密碼庫</h1>
+ <p class="lead">資料以 AES-256-GCM 加密後僅存放於此瀏覽器，不會上傳。</p>
+ <div class="panel">
+  <div class="tabs"><button data-t="U" class="on">解鎖設定檔</button><button data-t="C">建立設定檔</button></div>
+  <div id="pU">
+   <label for="uSel">設定檔</label><select id="uSel"></select>
+   <label for="uPw">主碼</label><input id="uPw" type="password" autocomplete="off">
+   <button class="btn pri full" id="bUnlock">解鎖</button>
+   <div class="alt"><button class="btn gh mini" id="bImpG">從備份匯入</button><button class="btn dg mini" id="bDelG">刪除此設定檔</button></div>
+  </div>
+  <div id="pC" hidden>
+   <label for="cName">設定檔名稱</label><input id="cName" placeholder="字母、數字、底線、連字號、中文" autocomplete="off">
+   <label for="cPw">主碼</label><input id="cPw" type="password" autocomplete="new-password">
+   <label for="cPw2">再次輸入主碼</label><input id="cPw2" type="password" autocomplete="new-password">
+   <label for="cFmt">加密格式</label>
+   <select id="cFmt"><option value="PWV3">PWV3（Argon2id + AES-256-GCM，建議）</option><option value="PWV2">PWV2（PBKDF2-HMAC-SHA256 + AES-256-GCM）</option><option value="FERNET">舊版 Fernet（PBKDF2 + AES-128-CBC + HMAC）</option></select>
+   <p class="note">主碼遺失將導致此設定檔所有紀錄永久無法復原，本程式不提供任何救援機制。</p>
+   <button class="btn pri full" id="bCreate">建立設定檔</button>
+  </div>
+ </div>
+</section>
+
+<section class="vault" id="vault" hidden>
+ <aside class="list">
+  <div class="bar"><input id="q" type="search" placeholder="搜尋帳號名稱" aria-label="搜尋"><button class="btn pri" id="bNew">新增</button></div>
+  <ul id="ul"></ul>
+  <div class="foot"><span id="cnt"></span>
+   <details class="more"><summary>更多</summary><div>
+    <button id="bExp">匯出備份</button><button id="bImp">匯入備份</button><button id="bCsv">匯入 CSV</button><button id="bDel" style="color:var(--dg)">刪除資料庫</button>
+   </div></details></div>
+ </aside>
+ <article class="detail" id="dt"></article>
+</section>
+</main>
+
+<dialog id="dlg">
+ <h3>密碼生成器</h3>
+ <div class="out" id="gOut"></div>
+ <label for="gLen">長度：<b id="gN">20</b></label><input id="gLen" type="range" min="12" max="64" value="20">
+ <div class="fa"><button class="btn" id="gAgain">重新生成</button><button class="btn pri" id="gCopy">複製</button><span class="sp"></span><button class="btn gh" id="gClose">關閉</button></div>
+</dialog>
+<input type="file" id="fImp" hidden>
+<dialog id="dlgImp">
+ <h3>匯入備份</h3><div id="iInfo"></div>
+ <label for="iName">匯入為設定檔名稱</label><input id="iName" autocomplete="off">
+ <p class="note" id="iErr" hidden style="border-color:var(--dg);color:var(--dg)"></p>
+ <p class="note">請將上方 SHA-256 與原備份旁 .sha256 檔案的內容比對，不一致請勿匯入。</p>
+ <div class="fa"><button class="btn pri" id="iOk">匯入</button><button class="btn" id="iNo">取消</button></div>
+</dialog>
+<dialog id="dlgAuth">
+ <h3>再次輸入主碼</h3><p class="note" id="aWhy"></p>
+ <input id="aPw" type="password" autocomplete="off" aria-label="主碼">
+ <div class="fa"><button class="btn pri" id="aOk">驗證</button><button class="btn" id="aNo">取消</button></div>
+</dialog>
+<div id="busy" hidden><div><i class="spin"></i><span id="busyT"></span></div></div>
+<input type="file" id="fCsv" accept=".csv,text/csv" hidden>
+<div id="toast" role="status"></div>
+
+<script>
+/*A2*/
+const M64=(1n<<64n)-1n;
+const IV=[0x6a09e667f3bcc908n,0xbb67ae8584caa73bn,0x3c6ef372fe94f82bn,0xa54ff53a5f1d36f1n,0x510e527fade682d1n,0x9b05688c2b3e6c1fn,0x1f83d9abfb41bd6bn,0x5be0cd19137e2179n];
+const SIG=[[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],[14,10,4,8,9,15,13,6,1,12,0,2,11,7,5,3],[11,8,12,0,5,2,15,13,10,14,3,6,7,1,9,4],[7,9,3,1,13,12,11,14,2,6,5,10,4,0,15,8],[9,0,5,7,2,4,10,15,14,1,11,12,6,8,3,13],[2,12,6,10,0,11,8,3,4,13,7,5,15,14,1,9],[12,5,1,15,14,13,4,10,0,7,6,3,9,2,8,11],[13,11,7,14,12,1,3,9,5,0,15,4,8,6,2,10],[6,15,14,9,11,3,0,8,12,2,13,7,1,4,10,5],[10,2,8,4,7,6,1,5,15,11,9,14,3,12,13,0]];
+const rotr=(x,r)=>((x>>r)|(x<<(64n-r)))&M64;
+function blake2b(data,outLen){
+ const h=IV.slice();h[0]^=0x01010000n^BigInt(outLen);
+ const n=data.length,nb=Math.max(1,Math.ceil(n/128));
+ const buf=new Uint8Array(nb*128);buf.set(data);const dv=new DataView(buf.buffer);
+ for(let b=0;b<nb;b++){
+  const last=b===nb-1,m=[];
+  for(let i=0;i<16;i++)m.push(dv.getBigUint64(b*128+i*8,true));
+  const v=h.concat(IV);v[12]^=BigInt(last?n:(b+1)*128);if(last)v[14]^=M64;
+  const g=(a,b2,c,d,x,y)=>{v[a]=(v[a]+v[b2]+x)&M64;v[d]=rotr(v[d]^v[a],32n);v[c]=(v[c]+v[d])&M64;v[b2]=rotr(v[b2]^v[c],24n);v[a]=(v[a]+v[b2]+y)&M64;v[d]=rotr(v[d]^v[a],16n);v[c]=(v[c]+v[d])&M64;v[b2]=rotr(v[b2]^v[c],63n)};
+  for(let r=0;r<12;r++){const s=SIG[r%10];
+   g(0,4,8,12,m[s[0]],m[s[1]]);g(1,5,9,13,m[s[2]],m[s[3]]);g(2,6,10,14,m[s[4]],m[s[5]]);g(3,7,11,15,m[s[6]],m[s[7]]);
+   g(0,5,10,15,m[s[8]],m[s[9]]);g(1,6,11,12,m[s[10]],m[s[11]]);g(2,7,8,13,m[s[12]],m[s[13]]);g(3,4,9,14,m[s[14]],m[s[15]]);}
+  for(let i=0;i<8;i++)h[i]^=v[i]^v[i+8];
+ }
+ const out=new Uint8Array(64),o=new DataView(out.buffer);h.forEach((x,i)=>o.setBigUint64(i*8,x,true));
+ buf.fill(0);return out.slice(0,outLen);
+}
+const u32=x=>{const a=new Uint8Array(4);new DataView(a.buffer).setUint32(0,x,true);return a};
+const cat=(...a)=>{const o=new Uint8Array(a.reduce((s,x)=>s+x.length,0));let p=0;for(const x of a){o.set(x,p);p+=x.length}return o};
+function hprime(T,A){
+ const inp=cat(u32(T),A);
+ if(T<=64)return blake2b(inp,T);
+ const r=Math.ceil(T/32)-2,out=new Uint8Array(T);
+ let v=blake2b(inp,64);out.set(v.subarray(0,32),0);
+ for(let i=1;i<r;i++){v=blake2b(v,64);out.set(v.subarray(0,32),i*32)}
+ out.set(blake2b(v,T-32*r),32*r);
+ return out;
+}
+const TW=4294967296;
+function fb(v,a,b){
+ const al=v[a],ah=v[a+1],bl=v[b],bh=v[b+1];
+ const x0=al&65535,x1=al>>>16,y0=bl&65535,y1=bl>>>16;
+ const mid=x1*y0+x0*y1,t=x0*y0+(mid%65536)*65536;
+ const pl=t%TW,ph=x1*y1+Math.floor(mid/65536)+Math.floor(t/TW);
+ const ml=(pl*2)%TW,mh=(ph*2+Math.floor(pl*2/TW))%TW;
+ const lo=al+bl+ml;
+ v[a]=lo>>>0;v[a+1]=(ah+bh+mh+Math.floor(lo/TW))>>>0;
+}
+function gb(v,a,b,c,d){
+ fb(v,a,b);let l=v[d]^v[a],h=v[d+1]^v[a+1];v[d]=h;v[d+1]=l;
+ fb(v,c,d);l=v[b]^v[c];h=v[b+1]^v[c+1];v[b]=(l>>>24)|(h<<8);v[b+1]=(h>>>24)|(l<<8);
+ fb(v,a,b);l=v[d]^v[a];h=v[d+1]^v[a+1];v[d]=(l>>>16)|(h<<16);v[d+1]=(h>>>16)|(l<<16);
+ fb(v,c,d);l=v[b]^v[c];h=v[b+1]^v[c+1];v[b]=(l<<1)|(h>>>31);v[b+1]=(h<<1)|(l>>>31);
+}
+function perm(v,x){
+ gb(v,x[0],x[4],x[8],x[12]);gb(v,x[1],x[5],x[9],x[13]);gb(v,x[2],x[6],x[10],x[14]);gb(v,x[3],x[7],x[11],x[15]);
+ gb(v,x[0],x[5],x[10],x[15]);gb(v,x[1],x[6],x[11],x[12]);gb(v,x[2],x[7],x[8],x[13]);gb(v,x[3],x[4],x[9],x[14]);
+}
+const ROWS=[],COLS=[];
+for(let i=0;i<8;i++){ROWS.push(Array.from({length:16},(_,k)=>2*(16*i+k)));COLS.push(Array.from({length:16},(_,k)=>2*(16*(k>>1)+2*i+(k&1))))}
+const Q=new Uint32Array(256),R=new Uint32Array(256);
+function fillBlock(A,ao,B,bo,C,co,xor){
+ for(let i=0;i<256;i++)R[i]=A[ao+i]^B[bo+i];
+ Q.set(R);
+ for(let i=0;i<8;i++)perm(Q,ROWS[i]);
+ for(let i=0;i<8;i++)perm(Q,COLS[i]);
+ if(xor)for(let i=0;i<256;i++)C[co+i]^=Q[i]^R[i];
+ else for(let i=0;i<256;i++)C[co+i]=Q[i]^R[i];
+}
+function argon2id(pwd,salt,mKiB=19456,t=2){
+ const inp0=cat(u32(1),u32(32),u32(mKiB),u32(t),u32(0x13),u32(2),u32(pwd.length),pwd,u32(salt.length),salt,u32(0),u32(0));
+ const H0=blake2b(inp0,64);inp0.fill(0);
+ const mem=new Uint32Array(mKiB*256);
+ for(let i=0;i<2;i++)mem.set(new Uint32Array(hprime(1024,cat(H0,u32(i),u32(0))).buffer),i*256);
+ const seg=mKiB/4,zero=new Uint32Array(256),inp=new Uint32Array(256),addr=new Uint32Array(256);
+ const next=()=>{inp[12]++;fillBlock(zero,0,inp,0,addr,0,false);fillBlock(zero,0,addr,0,addr,0,false)};
+ for(let p=0;p<t;p++)for(let s=0;s<4;s++){
+  const indep=p===0&&s<2;
+  if(indep){inp.fill(0);inp[0]=p;inp[2]=0;inp[4]=s;inp[6]=mKiB;inp[8]=t;inp[10]=2;if(p===0&&s===0)next()}
+  for(let i=(p===0&&s===0?2:0);i<seg;i++){
+   const cur=s*seg+i,prev=(cur+mKiB-1)%mKiB;
+   let j1;
+   if(indep){if(i%128===0)next();j1=addr[2*(i%128)]}else j1=mem[prev*256];
+   const area=p===0?(s===0?i-1:s*seg+i-1):mKiB-seg+i-1;
+   const x=(BigInt(j1)*BigInt(j1))>>32n,y=(BigInt(area)*x)>>32n;
+   const rel=area-1-Number(y),start=p===0?0:(s===3?0:(s+1)*seg),ref=(start+rel)%mKiB;
+   fillBlock(mem,prev*256,mem,ref*256,mem,cur*256,p>0);
+  }
+ }
+ const tag=hprime(32,new Uint8Array(mem.buffer,(mKiB-1)*1024,1024).slice());mem.fill(0);return tag;
+}
+/*A2END*/
+
+const $=s=>document.querySelector(s);
+/*CORE*/
+const enc=new TextEncoder(),dec=new TextDecoder();
+const b64=u=>{let s="";u.forEach(c=>s+=String.fromCharCode(c));return btoa(s)};
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const b64u=u=>b64(u).replace(/\+/g,"-").replace(/\//g,"_");
+const unb64u=s=>unb64(s.replace(/-/g,"+").replace(/_/g,"/"));
+const hex=u=>[...u].map(b=>b.toString(16).padStart(2,"0")).join("");
+const rb=n=>crypto.getRandomValues(new Uint8Array(n));
+const FMT={PWV3:"PWV3（Argon2id + AES-256-GCM）",PWV2:"PWV2（PBKDF2-HMAC-SHA256 + AES-256-GCM）",FERNET:"舊版 Fernet（PBKDF2 + AES-128-CBC + HMAC-SHA256）"};
+const isFernet=r=>r.length>=16+73&&dec.decode(r.slice(16,21))==="gAAAA";
+function hdr(raw){
+ const m=dec.decode(raw.slice(0,4));
+ if(m==="PWV3"){if(raw[4]!==1)throw new Error("不支援的 KDF 版本代碼");return{fmt:"PWV3",salt:raw.slice(5,21),body:raw.slice(21)}}
+ if(m==="PWV2")return{fmt:"PWV2",salt:raw.slice(4,20),body:raw.slice(20)};
+ if(isFernet(raw))return{fmt:"FERNET",salt:raw.slice(0,16),body:raw.slice(16)};
+ throw new Error("無法辨識的資料庫格式");
+}
+async function derive(fmt,pw,salt){
+ let raw;
+ if(fmt==="PWV3")raw=argon2id(pw,salt);
+ else{const k=await crypto.subtle.importKey("raw",pw,"PBKDF2",false,["deriveBits"]);
+  raw=new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt,iterations:600000},k,256))}
+ try{
+  if(fmt==="FERNET")return{s:await crypto.subtle.importKey("raw",raw.slice(0,16),{name:"HMAC",hash:"SHA-256"},false,["sign","verify"]),a:await crypto.subtle.importKey("raw",raw.slice(16),"AES-CBC",false,["encrypt","decrypt"])};
+  return{g:await crypto.subtle.importKey("raw",raw,"AES-GCM",false,["encrypt","decrypt"])};
+ }finally{raw.fill(0)}
+}
+async function unseal(fmt,k,body){
+ const bad=()=>new Error("主碼錯誤，或資料庫已損毀");let pt;
+ if(fmt==="FERNET"){
+  let t;try{t=unb64u(dec.decode(body).trim())}catch{throw new Error("資料庫檔案格式錯誤")}
+  if(t[0]!==0x80||t.length<57)throw bad();
+  if(!await crypto.subtle.verify("HMAC",k.s,t.slice(-32),t.slice(0,-32)))throw bad();
+  try{pt=await crypto.subtle.decrypt({name:"AES-CBC",iv:t.slice(9,25)},k.a,t.slice(25,-32))}catch{throw bad()}
+ }else{
+  if(body.length<44)throw new Error("資料庫檔案格式錯誤");
+  try{pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:body.slice(0,12)},k.g,body.slice(12))}catch{throw bad()}
+ }
+ const x=JSON.parse(dec.decode(pt));let recs=[];
+ if(x&&Array.isArray(x.records))recs=x.records;
+ else if(x&&typeof x==="object")recs=Object.entries(x).filter(e=>typeof e[1]==="string").map(([a,p])=>({accountType:"",accountName:a,password:p,linkedAccount:"",name:"",notes:[]}));
+ recs.forEach((r,i)=>{if(!r.id)r.id="i"+i});
+ return recs;
+}
+async function seal(fmt,salt,k,recs){
+ const pl=enc.encode(JSON.stringify({records:recs}));let out;
+ if(fmt==="FERNET"){
+  const iv=rb(16),ct=new Uint8Array(await crypto.subtle.encrypt({name:"AES-CBC",iv},k.a,pl));
+  const head=new Uint8Array(25);head[0]=0x80;new DataView(head.buffer).setBigUint64(1,BigInt(Math.floor(Date.now()/1e3)));head.set(iv,9);
+  const msg=cat(head,ct),mac=new Uint8Array(await crypto.subtle.sign("HMAC",k.s,msg));
+  out=cat(salt,enc.encode(b64u(cat(msg,mac))));
+ }else{
+  const n=rb(12),ct=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv:n},k.g,pl));
+  out=fmt==="PWV3"?cat(enc.encode("PWV3"),Uint8Array.of(1),salt,n,ct):cat(enc.encode("PWV2"),salt,n,ct);
+ }
+ pl.fill(0);return out;
+}
+async function openVault(raw,pw){const h=hdr(raw),keys=await derive(h.fmt,pw,h.salt);return{fmt:h.fmt,salt:h.salt,keys,recs:await unseal(h.fmt,keys,h.body)}}
+/*COREEND*/
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const SYM="!@#$%^&*()-_=+[]{}",PRE="pwv:",NAME_RE=/^[\w\-\u4e00-\u9fff]+$/;
+const WEAK=new Set(["password","123456","12345678","qwerty","111111","123456789","abc123","password1","iloveyou","admin","letmein","welcome","monkey","dragon","master","000000","1234567","sunshine","princess","football"]);
+let S=null,idle,revT,edT,hidT,clipTimer=null,pend=null;
+
+/* ---------- 工具 ---------- */
+const sha=async u=>hex(new Uint8Array(await crypto.subtle.digest("SHA-256",u)));
+const rnd=n=>{const lim=Math.floor(TW/n)*n;let x;do{x=crypto.getRandomValues(new Uint32Array(1))[0]}while(x>=lim);return x%n};
+function toast(m,err){const t=$("#toast");t.textContent=m;t.className="on"+(err?" er":"");clearTimeout(t._t);t._t=setTimeout(()=>t.className="",err?4200:2400)}
+function download(name,part){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([part]));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1e3)}
+async function work(msg,fn){$("#busyT").textContent=msg;$("#busy").hidden=false;await new Promise(r=>setTimeout(r,40));try{return await fn()}catch(e){toast(e.message,1);return null}finally{$("#busy").hidden=true}}
+async function copy(text){try{await navigator.clipboard.writeText(text);clearTimeout(clipTimer);clipTimer=setTimeout(clipClear,3e4);toast("已複製，30 秒後清除剪貼簿")}catch{toast("無法存取剪貼簿",1)}}
+function clipClear(){if(clipTimer){clearTimeout(clipTimer);clipTimer=null;try{navigator.clipboard.writeText("").catch(()=>{})}catch{}}}
+const profiles=()=>Object.keys(localStorage).filter(k=>k.startsWith(PRE)).map(k=>k.slice(PRE.length)).sort();
+const rawVault=()=>unb64(localStorage.getItem(PRE+S.profile));
+const metaOf=r=>r.map(x=>({id:x.id,accountType:x.accountType||"",accountName:x.accountName||"",name:x.name||""}));
+
+/* ---------- 密碼生成與評估 ---------- */
+function generatePassword(len=20){
+ const al="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"+SYM;
+ for(;;){let p="";for(let i=0;i<len;i++)p+=al[rnd(al.length)];
+  if(/[a-z]/.test(p)&&/[A-Z]/.test(p)&&/\d/.test(p)&&[...p].some(c=>SYM.includes(c)))return p}
+}
+function weakReason(p){
+ if(WEAK.has(p.toLowerCase()))return "此密碼為常見弱密碼清單中的項目";
+ if(p.length<8)return "長度低於 8 字元";
+ if(/^\d+$/.test(p))return "全部由數字組成";
+ if(/^[a-z]+$/.test(p))return "全部由小寫字母組成";
+ if(new Set(p).size<=3)return "字元重複性過高，多樣性不足";
+ return null;
+}
+function strength(p){
+ let s=0;if(p.length>=12)s++;if(p.length>=16)s++;
+ if(/[a-z]/.test(p)&&/[A-Z]/.test(p))s++;if(/\d/.test(p))s++;if([...p].some(c=>SYM.includes(c)))s++;
+ if(p.length&&new Set(p).size<p.length*.6)s--;
+ return s<=1?["w","弱"]:s<=3?["m","中"]:["g","強"];
+}
+const meter=p=>{const[c,t]=strength(p);return p?`<div class="meter ${c}"><s></s><s></s><s></s><span>強度：${t}</span></div>`:""};
+const colorize=p=>[...p].map(c=>`<span class="${/[a-z]/i.test(c)?"l":/\d/.test(c)?"d":"s"}">${esc(c)}</span>`).join("");
+
+/* ---------- 主碼輸入：只以位元組短暫存在，用完即歸零 ---------- */
+function ask(reason){return new Promise(res=>{
+ const d=$("#dlgAuth"),i=$("#aPw");$("#aWhy").textContent=reason;i.value="";
+ const done=v=>{d.onclose=null;i.value="";d.close();res(v)};
+ $("#aOk").onclick=()=>{if(!i.value)return;const b=enc.encode(i.value);i.value="";done(b)};
+ $("#aNo").onclick=()=>done(null);
+ i.onkeydown=e=>{if(e.key==="Enter")$("#aOk").click()};
+ d.onclose=()=>res(null);d.showModal();i.focus();
+})}
+async function authOpen(reason){
+ const pw=await ask(reason);if(!pw)return null;
+ try{return await work("驗證主碼中…",()=>openVault(rawVault(),pw))}finally{pw.fill(0)}
+}
+const drop=o=>{if(o){o.recs=null;o.keys=null}};
+async function commit(o,recs){localStorage.setItem(PRE+S.profile,b64(await seal(o.fmt,o.salt,o.keys,recs)));S.meta=metaOf(recs)}
+
+/* ---------- 畫面 ---------- */
+function refreshGate(){
+ const p=profiles();$("#uSel").innerHTML=p.map(n=>`<option>${esc(n)}</option>`).join("");
+ tab(p.length?"U":"C");
+}
+function tab(t){document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));$("#pU").hidden=t!=="U";$("#pC").hidden=t!=="C"}
+function enter(){
+ $("#gate").hidden=true;$("#vault").hidden=false;$("#bLock").hidden=false;
+ $("#prof").hidden=false;$("#prof").textContent=S.profile;$("#q").value="";render();armIdle();
+}
+function lock(){
+ stopRev();clearTimeout(edT);clearTimeout(idle);clearTimeout(hidT);clipClear();S=null;pend=null;
+ ["#dlgAuth","#dlg","#dlgImp"].forEach(s=>{const d=$(s);if(d?.open)d.close()});
+ ["#aPw","#uPw","#cPw","#cPw2"].forEach(s=>$(s).value="");$("#gOut").textContent="";
+ $("#vault").hidden=true;$("#gate").hidden=false;$("#bLock").hidden=true;$("#prof").hidden=true;
+ $("#dt").innerHTML="";$("#ul").innerHTML="";refreshGate();
+}
+function armIdle(){clearTimeout(idle);if(S)idle=setTimeout(()=>{lock();toast("閒置過久，已自動鎖定")},3e5)}
+function stopRev(){clearInterval(revT);if(S)S.rev=null}
+function hideRev(){stopRev();if(S)renderDetail()}
+function armEd(){clearTimeout(edT);edT=setTimeout(()=>{if(S&&S.ed){cancelEdit();toast("編輯閒置過久，已取消並清除")}},12e4)}
+function endEdit(){clearTimeout(edT);if(S){S.ed=null;S.mode="view"}}
+function cancelEdit(){const n=S.mode==="new";endEdit();if(n)S.sel=null;render()}
+function select(id){endEdit();stopRev();S.sel=id;render();armIdle()}
+function render(){renderList();renderDetail()}
+function renderList(){
+ const q=$("#q").value.trim().toLowerCase();
+ const items=S.meta.filter(r=>r.accountName.toLowerCase().includes(q));
+ $("#ul").innerHTML=items.length?items.map(r=>`<li><button class="it${S.sel===r.id?" on":""}" data-id="${esc(r.id)}"><i>${esc((r.accountName||"?")[0].toUpperCase())}</i><span><b>${esc(r.accountName||"（未命名）")}</b><small>${esc(r.accountType||"未分類")}${r.name?"　"+esc(r.name):""}</small></span></button></li>`).join(""):`<li class="empty">${S.meta.length?"找不到符合的紀錄":"尚無紀錄，按「新增」建立第一筆"}</li>`;
+ $("#cnt").textContent=S.meta.length+" 筆紀錄";
+}
+function renderDetail(){
+ if(S.mode!=="view")return renderEdit();
+ const m=S.meta.find(x=>x.id===S.sel);$("#vault").classList.toggle("dt",!!m);
+ if(!m){$("#dt").innerHTML=`<div class="blank"><div><b>選擇一筆紀錄</b>從左側清單挑選，或新增一筆。</div></div>`;return}
+ const rv=S.rev&&S.rev.id===m.id?S.rev.rec:null;
+ const row=(k,v,cp)=>v?`<div class="row"><dt>${k}</dt><dd>${esc(v)}</dd>${cp?`<button class="btn mini" data-a="cp" data-v="${esc(v)}">複製</button>`:"<span></span>"}</div>`:"";
+ const head=`<div class="dh"><div><button class="btn gh back" data-a="back">返回清單</button><div><span class="tag">${esc(m.accountType||"未分類")}</span></div><h2>${esc(m.accountName||"（未命名）")}</h2></div></div>`;
+ if(!rv){$("#dt").innerHTML=head+`<dl style="margin:0">${row("帳號名稱",m.accountName,0)}${row("姓名",m.name,0)}</dl>
+  <div class="lockbox"><b>密碼與詳細資料已加密</b><p>查看前需要再次輸入主碼，顯示 30 秒後自動隱藏。</p>
+  <div class="fa"><button class="btn pri" data-a="rev">查看密碼</button><button class="btn" data-a="edit">編輯</button><span class="sp"></span><button class="btn dg" data-a="del">刪除</button></div></div>`;return}
+ $("#dt").innerHTML=head+`<dl style="margin:0">${row("帳號名稱",rv.accountName,1)}
+ <div class="row pw"><dt>密碼</dt><dd><div class="keys mask" id="pwv">••••••••••••</div>${meter(rv.password||"")}</dd><span style="display:flex;gap:6px"><button class="btn mini" data-a="show">顯示</button><button class="btn mini" data-a="cpw">複製</button></span></div>
+ ${row("連結帳戶",rv.linkedAccount,1)}${row("姓名",rv.name,0)}
+ ${(rv.notes||[]).length?`<div class="row"><dt>備註</dt><dd><ul class="notes" style="max-height:none">${rv.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></dd><span></span></div>`:""}</dl>
+ <p class="note">將於 <b id="cd">${S.rev.t}</b> 秒後自動隱藏</p>
+ <div class="fa"><button class="btn pri" data-a="hide">立即隱藏</button><button class="btn" data-a="edit">編輯</button><span class="sp"></span><button class="btn dg" data-a="del">刪除</button></div>`;
+}
+function renderEdit(){
+ const r=S.ed.rec,f=(k,l)=>`<label for="e_${k}">${l}</label><input id="e_${k}" value="${esc(r[k]||"")}" autocomplete="off">`;
+ $("#vault").classList.add("dt");
+ $("#dt").innerHTML=`<div class="dh"><div><button class="btn gh back" data-a="cancel">返回</button><h2>${r.id?"編輯紀錄":"新增紀錄"}</h2></div></div>
+ ${f("accountType","帳戶類型")}${f("accountName","帳號名稱")}
+ <label for="e_password">密碼</label><div class="pwl"><input id="e_password" type="password" value="${esc(r.password||"")}" autocomplete="off" style="font-family:var(--mono)"><button class="btn" data-a="eye">顯示</button><button class="btn" data-a="gen">生成</button></div><div id="eMeter">${meter(r.password||"")}</div>
+ ${f("linkedAccount","連結帳戶")}${f("name","姓名")}
+ <label for="e_notes">備註（每行一筆）</label><textarea id="e_notes">${esc((r.notes||[]).join("\n"))}</textarea>
+ <div class="fa"><button class="btn pri" data-a="save">儲存</button><button class="btn" data-a="cancel">取消</button></div>`;
+}
+
+/* ---------- 事件 ---------- */
+document.addEventListener("pointerdown",armIdle);document.addEventListener("keydown",armIdle);
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>tab(b.dataset.t));
+$("#uPw").addEventListener("keydown",e=>{if(e.key==="Enter")$("#bUnlock").click()});
+$("#bUnlock").onclick=async()=>{
+ const name=$("#uSel").value;if(!name)return toast("尚無設定檔，請先建立",1);
+ const pw=enc.encode($("#uPw").value);$("#uPw").value="";if(!pw.length)return;
+ try{
+  const raw=unb64(localStorage.getItem(PRE+name)),o=await work("解鎖中…",()=>openVault(raw,pw));
+  if(o){S={profile:name,meta:metaOf(o.recs),sel:null,mode:"view",rev:null,ed:null};drop(o);enter()}
+ }finally{pw.fill(0)}
+};
+$("#bCreate").onclick=async()=>{
+ const name=$("#cName").value.trim(),p1=$("#cPw").value,p2=$("#cPw2").value;
+ if(!NAME_RE.test(name))return toast("設定檔名稱僅允許字母、數字、底線、連字號、中文字元",1);
+ if(!p1)return toast("主碼不可為空",1);
+ if(p1!==p2)return toast("兩次輸入的主碼不一致",1);
+ if(localStorage.getItem(PRE+name)&&!confirm("同名設定檔已存在，重設將清空所有紀錄，是否繼續？"))return;
+ const w=weakReason(p1);if(w&&!confirm(`警告：${w}\n仍要使用此主碼嗎？`))return;
+ const pw=enc.encode(p1),fmt=$("#cFmt").value,salt=rb(16);["#cPw","#cPw2"].forEach(s=>$(s).value="");
+ try{
+  const ok=await work("建立中…",async()=>{const k=await derive(fmt,pw,salt);localStorage.setItem(PRE+name,b64(await seal(fmt,salt,k,[])));return true});
+  if(ok){$("#cName").value="";S={profile:name,meta:[],sel:null,mode:"view",rev:null,ed:null};enter();toast("設定檔已建立")}
+ }finally{pw.fill(0)}
+};
+$("#q").oninput=renderList;
+$("#ul").onclick=e=>{const b=e.target.closest(".it");if(b)select(b.dataset.id)};
+$("#bLock").onclick=lock;
+$("#bNew").onclick=async()=>{
+ const o=await authOpen("新增紀錄需要驗證主碼");if(!o)return;
+ endEdit();stopRev();S.sel=null;S.mode="new";
+ S.ed={fmt:o.fmt,salt:o.salt,keys:o.keys,rec:{id:null,accountType:"",accountName:"",password:generatePassword(20),linkedAccount:"",name:"",notes:[]}};
+ o.recs=null;armEd();render();
+};
+$("#dt").onclick=async e=>{
+ const b=e.target.closest("[data-a]");if(!b||!S)return;const a=b.dataset.a;
+ if(a==="cp")copy(b.dataset.v);
+ else if(a==="cpw")copy(S.rev.rec.password||"");
+ else if(a==="show"){const el=$("#pwv"),on=el.classList.toggle("mask");if(on){el.textContent="••••••••••••";b.textContent="顯示"}else{el.innerHTML=colorize(S.rev.rec.password||"");b.textContent="隱藏"}}
+ else if(a==="hide")hideRev();
+ else if(a==="back"){stopRev();S.sel=null;render()}
+ else if(a==="rev"){
+  const m=S.meta.find(x=>x.id===S.sel),o=await authOpen(`查看「${m.accountName}」的密碼需要驗證主碼`);if(!o)return;
+  const rec=o.recs.find(x=>x.id===m.id);drop(o);if(!rec)return toast("找不到該紀錄",1);
+  stopRev();S.rev={id:m.id,rec,t:30};
+  revT=setInterval(()=>{if(!S||!S.rev)return stopRev();if(--S.rev.t<=0)hideRev();else{const c=$("#cd");if(c)c.textContent=S.rev.t}},1000);
+  renderDetail();
+ }
+ else if(a==="edit"){
+  const m=S.meta.find(x=>x.id===S.sel),o=await authOpen(`編輯「${m.accountName}」需要驗證主碼`);if(!o)return;
+  const rec=o.recs.find(x=>x.id===m.id);if(!rec){drop(o);return toast("找不到該紀錄",1)}
+  stopRev();S.mode="edit";S.ed={fmt:o.fmt,salt:o.salt,keys:o.keys,rec:{...rec,notes:[...(rec.notes||[])]}};o.recs=null;armEd();render();
+ }
+ else if(a==="cancel")cancelEdit();
+ else if(a==="eye"){const i=$("#e_password"),h=i.type==="password";i.type=h?"text":"password";b.textContent=h?"隱藏":"顯示"}
+ else if(a==="gen"){$("#e_password").value=generatePassword(20);$("#e_password").dispatchEvent(new Event("input",{bubbles:true}))}
+ else if(a==="save"){
+  const E=S.ed,g=k=>$("#e_"+k).value.trim();
+  const rec={...E.rec,id:E.rec.id||hex(rb(4)),accountType:g("accountType"),accountName:g("accountName"),linkedAccount:g("linkedAccount"),name:g("name"),password:$("#e_password").value,notes:$("#e_notes").value.split("\n").map(s=>s.trim()).filter(Boolean)};
+  if(!rec.accountName)return toast("帳號名稱不可為空",1);
+  const ok=await work("加密儲存中…",async()=>{
+   const recs=await unseal(E.fmt,E.keys,hdr(rawVault()).body);
+   if(E.rec.id){const i=recs.findIndex(r=>r.id===E.rec.id);if(i<0)throw new Error("找不到原紀錄");recs[i]=rec}else recs.push(rec);
+   await commit(E,recs);return true;
+  });
+  if(ok){endEdit();S.sel=rec.id;render();toast("已加密儲存")}
+ }
+ else if(a==="del"){
+  const m=S.meta.find(x=>x.id===S.sel);
+  if(!confirm(`確定刪除「${m.accountName}」嗎？此動作無法復原。`))return;
+  const o=await authOpen("刪除紀錄需要驗證主碼");if(!o)return;
+  const ok=await work("加密儲存中…",async()=>{await commit(o,o.recs.filter(x=>x.id!==m.id));return true});
+  drop(o);if(ok){stopRev();S.sel=null;render();toast("已刪除")}
+ }
+};
+$("#dt").addEventListener("input",e=>{if(S&&S.ed)armEd();if(e.target.id==="e_password")$("#eMeter").innerHTML=meter(e.target.value)});
+
+/* ---------- 離開頁面或進入背景：強制清除 ---------- */
+addEventListener("pagehide",()=>{if(S)lock()});
+document.addEventListener("visibilitychange",()=>{
+ if(!S)return;
+ if(document.hidden){stopRev();if(S.ed)cancelEdit();else renderDetail();hidT=setTimeout(()=>{if(S){lock()}},6e4)}
+ else clearTimeout(hidT);
+});
+
+/* ---------- 備份、CSV、刪除 ---------- */
+$("#bExp").onclick=async()=>{
+ const u=rawVault();download(S.profile+".bin",u);setTimeout(async()=>download(S.profile+".bin.sha256",await sha(u)),400);
+ toast("已匯出備份與 SHA-256 檢查碼");$(".more").open=false;
+};
+$("#bImp").onclick=()=>{$(".more").open=false;$("#fImp").click()};
+$("#bCsv").onclick=()=>{$(".more").open=false;$("#fCsv").click()};
+async function importBackup(file){
+ if(!file)return;
+ const u=new Uint8Array(await file.arrayBuffer());let fmt=null;
+ try{fmt=hdr(u).fmt}catch{}
+ const ok=!!fmt&&u.length>=48;pend=ok?u:null;
+ $("#iInfo").innerHTML=`<p style="margin:0 0 8px"><b>${esc(file.name)}</b><br><span style="color:var(--mu)">${u.length} 位元組，檔頭 ${hex(u.slice(0,4))}</span></p>
+ <p style="margin:0 0 6px;color:${ok?"var(--ok)":"var(--dg)"}">${ok?"格式："+FMT[fmt]:"無法辨識：不是 PWV2、PWV3 或 Fernet 格式的資料庫"}</p>
+ <label>SHA-256</label><div class="hash">${await sha(u)}</div>`;
+ $("#iName").value=file.name.replace(/\.[^.]*$/,"").replace(/[^\w\-\u4e00-\u9fff]/g,"_");
+ $("#iErr").hidden=true;$("#iOk").disabled=!ok;$("#dlgImp").showModal();
+}
+$("#fImp").onchange=e=>{importBackup(e.target.files[0]);e.target.value=""};
+$("#bImpG").onclick=()=>$("#fImp").click();
+$("#iNo").onclick=()=>{pend=null;$("#dlgImp").close()};
+$("#iOk").onclick=()=>{
+ const name=$("#iName").value.trim(),er=m=>{$("#iErr").textContent=m;$("#iErr").hidden=false};
+ if(!NAME_RE.test(name))return er("設定檔名稱僅允許字母、數字、底線、連字號、中文字元");
+ if(localStorage.getItem(PRE+name)&&!confirm("匯入將覆蓋同名設定檔現有資料庫，是否繼續？"))return;
+ localStorage.setItem(PRE+name,b64(pend));pend=null;$("#dlgImp").close();
+ if(S)lock();refreshGate();$("#uSel").value=name;toast("匯入完成，請輸入主碼解鎖");
+};
+function delDb(name){
+ if(!name)return toast("沒有可刪除的設定檔",1);
+ const a=prompt(`將永久刪除設定檔「${name}」的加密資料庫，無法復原。\n建議先匯出備份。\n請輸入設定檔名稱以確認：`);
+ if(a===null)return;
+ if(a.trim()!==name)return toast("名稱不符，已取消",1);
+ localStorage.removeItem(PRE+name);if(S)lock();else refreshGate();toast(`已刪除設定檔「${name}」`);
+}
+$("#bDel").onclick=()=>{$(".more").open=false;delDb(S.profile)};
+$("#bDelG").onclick=()=>delDb($("#uSel").value);
+function parseCsv(t){
+ const rows=[];let r=[],f="",q=false;t=t.replace(/^\uFEFF/,"");
+ for(let i=0;i<t.length;i++){const c=t[i];
+  if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+  else if(c==='"')q=true;else if(c===","){r.push(f);f=""}
+  else if(c==="\n"||c==="\r"){if(c==="\r"&&t[i+1]==="\n")i++;r.push(f);f="";rows.push(r);r=[]}else f+=c}
+ if(f||r.length){r.push(f);rows.push(r)}return rows.filter(x=>x.some(c=>c.trim()));
+}
+$("#fCsv").onchange=async e=>{
+ const file=e.target.files[0];e.target.value="";if(!file)return;
+ const rows=parseCsv(await file.text()),head=(rows.shift()||[]).map(h=>h.trim());
+ const col=n=>head.indexOf(n),nc=head.map((h,i)=>h.includes("備註")?i:-1).filter(i=>i>=0);
+ if(!head.length||col("帳號名稱")<0)return toast("CSV 欄位需包含：帳戶類型,帳號名稱,密碼,連結帳戶,姓名,備註",1);
+ const get=(r,n)=>col(n)<0?"":(r[col(n)]||"").trim();
+ const add=rows.map(r=>({id:hex(rb(4)),accountType:get(r,"帳戶類型"),accountName:get(r,"帳號名稱"),password:get(r,"密碼"),linkedAccount:get(r,"連結帳戶"),name:get(r,"姓名"),
+  notes:nc.flatMap(i=>(r[i]||"").split(/[;；]/).map(s=>s.trim()).filter(Boolean))}));
+ const o=await authOpen(`匯入 ${add.length} 筆 CSV 需要驗證主碼`);if(!o)return;
+ const ok=await work("加密儲存中…",async()=>{await commit(o,o.recs.concat(add));return true});
+ drop(o);if(ok){render();toast(`已匯入 ${add.length} 筆；來源 CSV 為明文，請自行安全刪除`)}
+};
+
+/* ---------- 生成器 ---------- */
+const gen=()=>{$("#gOut").textContent=generatePassword(+$("#gLen").value);$("#gN").textContent=$("#gLen").value};
+$("#bGen").onclick=()=>{gen();$("#dlg").showModal()};
+$("#dlg").onclose=()=>{$("#gOut").textContent=""};
+$("#gLen").oninput=gen;$("#gAgain").onclick=gen;$("#gCopy").onclick=()=>copy($("#gOut").textContent);$("#gClose").onclick=()=>$("#dlg").close();
+refreshGate();
+</script>
+</body>
+</html>

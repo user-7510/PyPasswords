@@ -116,7 +116,7 @@ Android 版已在三星 arm64 實機測試；macOS 版可建置，但尚未完�
 
 ### 授權
 
-尚未指定授權條款。  
+GPL-3.0 license  
 
 [回到頂端](#pypasswords)  
 
@@ -227,6 +227,6 @@ The Android build has been tested on a Samsung arm64 device; the macOS build is 
 
 ### License
 
-No license has been specified yet.  
+GPL-3.0 license
 
 [Back to top](#pypasswords)  
